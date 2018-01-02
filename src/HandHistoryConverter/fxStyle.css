@@ -1,0 +1,21 @@
+.btn{
+-fx-padding: 3px 10px 3px 10px;
+}
+.row{
+	-fx-padding: 10px 10px 0px 10px;
+	
+	-fx-size: 300px;
+}
+.boldLabel{
+	-fx-font-weight: bold;
+}
+.leftList{
+-fx-background-color: #AAAAAA;
+-fx-padding: 30px 30px 5px 30px;
+}  
+.vBox{
+-fx-padding: 15px 30% 15px 70%;
+} 
+.hboxResult{
+-fx-background-color: #CCCCCC;	
+}
