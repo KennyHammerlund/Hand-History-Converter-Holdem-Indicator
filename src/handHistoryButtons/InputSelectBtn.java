@@ -40,13 +40,19 @@ public class InputSelectBtn extends Button {
 					service.submit(new Runnable() {
 						@Override
 						public void run() {
-							System.out.println("Tick");
-							// DataModel.instance().setBtnRunText("Working..");
+							System.out.println("Btn: " + DataModel.instance().getBtnRunText());
+							DataModel.instance().setBtnRunText("Working..");
+							System.out.println("Btn: " + DataModel.instance().getBtnRunText());
+
 							List<Hand> newHands = FileIO.createhands(c);
 							for (Hand h : newHands) {
 								DataModel.instance().addHand(h);
 							}
-							DataModel.instance().setBtnRunText("Complete");
+
+							DataModel.instance().setBtnDisable(false);
+							DataModel.instance().setBtnRunText("Imported!");
+							System.out.println("Btn: " + DataModel.instance().getBtnRunText());
+
 						}
 
 					});

@@ -8,6 +8,7 @@ import handHistoryButtons.InputSelectBtn;
 import handHistoryButtons.OutputSelectBtn;
 import handHistoryButtons.openWindowBtn;
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -24,12 +25,13 @@ public class Display extends Application implements Observer {
 	private Label input = new Label("Use button to select input database");
 	private Label outputLabel = new Label("Output File Name:");
 	private Label output = new Label("Use button to select output database");
+	private Label status = new Label("");
 	private HandTable history = HandTable.instance();
 
 	private Button inputBtn = new InputSelectBtn("Select Input");
 	private Button outputBtn = new OutputSelectBtn("Select Output");
 	private Button saveBtn = new Button("Save");
-	private Button openBtn = new openWindowBtn("Open Window");
+	private Button openBtn = new openWindowBtn("Open Hand");
 
 	private VBox outsideVBox = new VBox(10);
 
@@ -81,12 +83,15 @@ public class Display extends Application implements Observer {
 
 		history.getColumns().setAll(idCol, timeCol, websiteCol, stakesCol, limitCol, actionCol, potCol, buttonCol);
 
+		// openBtn Set to not active
+		openBtn.setDisable(true);
+
 		// add Elements to HBox
 		outsideVBox.getChildren().addAll(history, inputLabelRow, inputBtnRow, outputLabelRow, outputBtnRow);
 
 		// add Elements to VBox
 		inputLabelRow.getChildren().addAll(inputLabel, input);
-		inputBtnRow.getChildren().addAll(inputBtn, openBtn);
+		inputBtnRow.getChildren().addAll(inputBtn, openBtn, status);
 		outputLabelRow.getChildren().addAll(outputLabel, output);
 		outputBtnRow.getChildren().addAll(outputBtn, saveBtn);
 
@@ -125,5 +130,16 @@ public class Display extends Application implements Observer {
 		if (outputFile != null) {
 			output.setText(outputFile.toString());
 		}
+		openBtn.setDisable(DataModel.instance().isBtnDisable());
+		if (arg != null && arg instanceof String) {
+			Platform.runLater(new Runnable() {
+				@Override
+				public void run() {
+					// TODO Auto-generated method stub
+					status.setText(arg.toString());
+				}
+			});
+		}
+
 	}
 }

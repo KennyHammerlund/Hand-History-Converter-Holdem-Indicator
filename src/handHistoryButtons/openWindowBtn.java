@@ -5,10 +5,11 @@ import HandHistoryConverter.HandTable;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
-import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
@@ -30,31 +31,35 @@ public class openWindowBtn extends Button {
 	public void newWindow(Hand hand) {
 
 		Insets ten = new Insets(10, 10, 10, 10);
-		Label mainLabel = new Label("Information for hand " + hand.getID());
-		Label timeLabel = new Label("Time: " + hand.getTime());
-		Label webLabel = new Label("Website: " + hand.getWebsite());
-		Label stakeLabel = new Label("Stakes: " + hand.getStakes());
-		Label potLabel = new Label("Pot Size: $" + hand.getPot());
-		Label actLabel = new Label("Action:");
 		TextArea actionText = new TextArea();
 		actionText.setEditable(false);
 		actionText.setText(hand.getAction());
 		actionText.setPadding(ten);
 		actionText.setPrefHeight(600);
 
-		VBox root = new VBox();
+		// Copy to Clipboard Button
+		copyClipboardBtn ccb = new copyClipboardBtn("Copy to Clipboard");
+		ccb.setOnAction(new EventHandler<ActionEvent>() {
+			@Override
+			public void handle(ActionEvent event) {
+				ccb.copyClip(actionText.getText());
+			}
+		});
+		HBox btnBox = new HBox(ccb);
+		btnBox.setAlignment(Pos.CENTER_RIGHT);
+		btnBox.setPadding(ten);
 
-		// add Labels
-		root.getChildren().addAll(mainLabel, timeLabel, webLabel, stakeLabel, potLabel, actLabel);
-		root.getChildren().add(actionText);
+		VBox root = new VBox(actionText, btnBox);
+
 		Stage stage = new Stage();
 
-		stage.setTitle("My New Stage Title");
-		Scene scene = new Scene(root, 450, 800);
+		stage.setTitle("Information for hand " + hand.getID());
+		Scene scene = new Scene(root, 450, 650);
 
 		// Style
 		// scene.getStylesheets().add(getClass().getResource("fxStyle.css").toExternalForm());
 		root.setPadding(ten);
+		stage.setResizable(false);
 		stage.setScene(scene);
 		stage.show();
 	}

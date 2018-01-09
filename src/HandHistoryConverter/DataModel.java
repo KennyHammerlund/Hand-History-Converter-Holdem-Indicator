@@ -22,6 +22,7 @@ public class DataModel extends Observable {
 	private File inputFile = null;
 	private File outputFile = null;
 	private String btnRunText = "Select A File";
+	private boolean btnDisable = true;
 
 	/**
 	 * Create Singleton
@@ -78,6 +79,17 @@ public class DataModel extends Observable {
 
 	public void setBtnRunText(String btnRunText) {
 		this.btnRunText = btnRunText;
+		setChanged();
+		notifyObservers(this.btnRunText);
+
+	}
+
+	public boolean isBtnDisable() {
+		return btnDisable;
+	}
+
+	public void setBtnDisable(boolean btnDisable) {
+		this.btnDisable = btnDisable;
 		setChanged();
 		notifyObservers();
 	}

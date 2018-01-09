@@ -92,8 +92,8 @@ public class FileIO {
 			while (rs.next()) {
 				int id = rs.getInt("id");
 				String xmlString = rs.getString("xml_dump");
-
-				retList.add(processXML(xmlString));
+				String website = rs.getString("site");
+				retList.add(processXML(xmlString, website));
 
 			}
 
@@ -110,7 +110,7 @@ public class FileIO {
 		return retList;
 	}
 
-	private static Hand processXML(String XML) {
+	private static Hand processXML(String XML, String website) {
 		DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
 		factory.setNamespaceAware(true);
 		DocumentBuilder builder;
@@ -137,12 +137,42 @@ public class FileIO {
 			double pot = getPot(doc, xpath);
 			int buttonPosition = getButtonPos(doc, xpath);
 			String action = getAction(doc, xpath);
-			retHand = new Hand(time, handID, "Stars", stakes, limit, pot, buttonPosition, action);
+
+			website = siteConvert(website);
+
+			retHand = new Hand(time, handID, website, stakes, limit, pot, buttonPosition, action);
 
 		} catch (ParserConfigurationException | SAXException | IOException e) {
 			e.printStackTrace();
 		}
 		return retHand;
+	}
+
+	/**
+	 * Takes numeric value from HEI and returns the name of the site associated
+	 * 
+	 * @param website
+	 *            numeric value from hei
+	 * @return name
+	 */
+	private static String siteConvert(String website) {
+		String site = "";
+		switch (Integer.valueOf(website)) {
+		case (7):
+			site = "Ignition";
+			break;
+		case (27):
+			site = "Britan";
+			break;
+		case (26):
+			site = "England";
+			break;
+		default:
+			site = "Unknown";
+			break;
+		}
+
+		return site;
 	}
 
 	private static String getAction(Document doc, XPath xpath) {
@@ -302,14 +332,10 @@ public class FileIO {
 					case 26:
 						Integer winSeat = Integer
 								.valueOf(nodes.item(i).getAttributes().getNamedItem("s").getNodeValue());
-						System.out.println("Winner Seat " + winSeat);
 						actFull += table[winSeat] + ": shows [" + cards[winSeat] + "]";
 						break;
 					}
 					actFull += "\n";
-					if (actionType == 26) {
-						System.out.println("Action: " + actionType);
-					}
 
 				} else {
 					// SHOWDOWN
@@ -601,4 +627,16 @@ public class FileIO {
 		return idNumber;
 	}
 
+	/**
+	 * Creates the string for the header of the hand printout
+	 * 
+	 * @param hand
+	 * @return hand header
+	 */
+	private static String getHeaderString(Hand hand) {
+		String header = "";
+		header = hand.getWebsite() + " Hand #" + hand.getID() + ": ";
+
+		return header;
+	}
 }
