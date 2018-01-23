@@ -52,7 +52,7 @@ public class InputSelectBtn extends Button {
 							DataModel.instance().setBtnDisable(false);
 							DataModel.instance().setBtnRunText("Imported!");
 							System.out.println("Btn: " + DataModel.instance().getBtnRunText());
-
+							DataModel.instance().saveButtonChanger();
 						}
 
 					});

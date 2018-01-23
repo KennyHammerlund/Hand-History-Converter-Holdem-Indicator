@@ -21,8 +21,8 @@ public class DataModel extends Observable {
 	private ObservableList<Hand> handList = FXCollections.observableArrayList();
 	private File inputFile = null;
 	private File outputFile = null;
-	private String btnRunText = "Select A File";
-	private boolean btnDisable = true;
+	private String[] statusText = { "Select A File", "File Not Set" };
+	private boolean[] btnDisable = { true, true };
 
 	/**
 	 * Create Singleton
@@ -34,6 +34,20 @@ public class DataModel extends Observable {
 			instance = new DataModel();
 		}
 		return instance;
+	}
+
+	/**
+	 * Sets the save button value to disabled or enabled based on if the files
+	 * are set
+	 */
+	public void saveButtonChanger() {
+		if (this.inputFile != null && this.outputFile != null) {
+			this.btnDisable[1] = false;
+		} else {
+			this.btnDisable[1] = true;
+		}
+		setChanged();
+		notifyObservers(this.btnDisable);
 	}
 
 	/**
@@ -74,24 +88,44 @@ public class DataModel extends Observable {
 	}
 
 	public String getBtnRunText() {
-		return btnRunText;
+		return statusText[0];
 	}
 
 	public void setBtnRunText(String btnRunText) {
-		this.btnRunText = btnRunText;
+		this.statusText[0] = btnRunText;
 		setChanged();
-		notifyObservers(this.btnRunText);
+		notifyObservers(this.statusText);
+	}
+
+	public String getSaveText() {
+		return statusText[1];
+	}
+
+	public void setSaveText(String saveText) {
+		this.statusText[1] = saveText;
+		setChanged();
+		notifyObservers(this.statusText);
 
 	}
 
 	public boolean isBtnDisable() {
-		return btnDisable;
+		return this.btnDisable[0];
 	}
 
 	public void setBtnDisable(boolean btnDisable) {
-		this.btnDisable = btnDisable;
+		this.btnDisable[0] = btnDisable;
 		setChanged();
-		notifyObservers();
+		notifyObservers(this.btnDisable);
+	}
+
+	public boolean isSaveBtnDisable() {
+		return this.btnDisable[1];
+	}
+
+	public void setSaveBtnDisable(boolean saveBtnDisable) {
+		this.btnDisable[1] = saveBtnDisable;
+		setChanged();
+		notifyObservers(btnDisable);
 	}
 
 }

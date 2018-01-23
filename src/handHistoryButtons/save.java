@@ -1,14 +1,15 @@
 package handHistoryButtons;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 import HandHistoryConverter.DataModel;
-import HandHistoryConverter.Display;
+import HandHistoryConverter.FileIO;
+import HandHistoryConverter.Hand;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.scene.control.Button;
-import javafx.stage.FileChooser;
-import javafx.stage.FileChooser.ExtensionFilter;
 
 public class save extends Button {
 
@@ -17,14 +18,19 @@ public class save extends Button {
 		this.setOnAction(new EventHandler<ActionEvent>() {
 			@Override
 			public void handle(ActionEvent event) {
-				FileChooser fileChooser = new FileChooser();
-				fileChooser.setTitle("Open Resource File");
-				fileChooser.getExtensionFilters().addAll(new ExtensionFilter("Database Files", "*.db"),
-						new ExtensionFilter("All Files", "*.*"));
-				File selectedFile = fileChooser.showOpenDialog(Display.getpStage());
-				DataModel.instance().setOutputFile(selectedFile);
+				// get file to write
+				File file = DataModel.instance().getOutputFile();
+				// create list of hand histories
+				List<String> handStringList = new ArrayList<String>();
+				for (Hand h : DataModel.instance().getHandList()) {
+					handStringList.add(h.getAction());
+				}
+				System.out.println("HSL Created..");
+				// write to file
+				if (FileIO.writeFile(file, handStringList)) {
+					DataModel.instance().setSaveText("Save Complete!");
+				}
 			}
-
 		});
 	}
 }

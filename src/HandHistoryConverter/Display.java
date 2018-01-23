@@ -7,6 +7,7 @@ import java.util.Observer;
 import handHistoryButtons.InputSelectBtn;
 import handHistoryButtons.OutputSelectBtn;
 import handHistoryButtons.openWindowBtn;
+import handHistoryButtons.save;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.scene.Scene;
@@ -26,11 +27,12 @@ public class Display extends Application implements Observer {
 	private Label outputLabel = new Label("Output File Name:");
 	private Label output = new Label("Use button to select output database");
 	private Label status = new Label("");
+	private Label saveStatus = new Label("File Not Set");
 	private HandTable history = HandTable.instance();
 
 	private Button inputBtn = new InputSelectBtn("Select Input");
 	private Button outputBtn = new OutputSelectBtn("Select Output");
-	private Button saveBtn = new Button("Save");
+	private Button saveBtn = new save("Save");
 	private Button openBtn = new openWindowBtn("Open Hand");
 
 	private VBox outsideVBox = new VBox(10);
@@ -85,6 +87,8 @@ public class Display extends Application implements Observer {
 
 		// openBtn Set to not active
 		openBtn.setDisable(true);
+		// set save button to not active
+		saveBtn.setDisable(true);
 
 		// add Elements to HBox
 		outsideVBox.getChildren().addAll(history, inputLabelRow, inputBtnRow, outputLabelRow, outputBtnRow);
@@ -93,7 +97,7 @@ public class Display extends Application implements Observer {
 		inputLabelRow.getChildren().addAll(inputLabel, input);
 		inputBtnRow.getChildren().addAll(inputBtn, openBtn, status);
 		outputLabelRow.getChildren().addAll(outputLabel, output);
-		outputBtnRow.getChildren().addAll(outputBtn, saveBtn);
+		outputBtnRow.getChildren().addAll(outputBtn, saveBtn, saveStatus);
 
 		// Create the Window
 		Scene scene = new Scene(outsideVBox, 1000, 600);
@@ -130,13 +134,21 @@ public class Display extends Application implements Observer {
 		if (outputFile != null) {
 			output.setText(outputFile.toString());
 		}
-		openBtn.setDisable(DataModel.instance().isBtnDisable());
-		if (arg != null && arg instanceof String) {
+
+		if (arg != null && arg instanceof boolean[]) {
+			boolean[] bools = (boolean[]) arg;
+
+			openBtn.setDisable(bools[0]);
+			saveBtn.setDisable(bools[1]);
+		}
+
+		if (arg != null && arg instanceof String[]) {
 			Platform.runLater(new Runnable() {
 				@Override
 				public void run() {
-					// TODO Auto-generated method stub
-					status.setText(arg.toString());
+					String[] strings = (String[]) arg;
+					status.setText(strings[0]);
+					saveStatus.setText(strings[1]);
 				}
 			});
 		}

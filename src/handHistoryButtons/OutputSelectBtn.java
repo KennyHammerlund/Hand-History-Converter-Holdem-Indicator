@@ -18,11 +18,13 @@ public class OutputSelectBtn extends Button {
 			@Override
 			public void handle(ActionEvent event) {
 				FileChooser fileChooser = new FileChooser();
-				fileChooser.setTitle("Open Resource File");
-				fileChooser.getExtensionFilters().addAll(new ExtensionFilter("Database Files", "*.db"),
+				fileChooser.setTitle("Choose Save Destination");
+				fileChooser.getExtensionFilters().addAll(new ExtensionFilter("Text File", "*.txt"),
 						new ExtensionFilter("All Files", "*.*"));
-				File selectedFile = fileChooser.showOpenDialog(Display.getpStage());
+				File selectedFile = fileChooser.showSaveDialog(Display.getpStage());
 				DataModel.instance().setOutputFile(selectedFile);
+				DataModel.instance().setSaveText("File Set: Not Saved");
+				DataModel.instance().saveButtonChanger();
 			}
 
 		});

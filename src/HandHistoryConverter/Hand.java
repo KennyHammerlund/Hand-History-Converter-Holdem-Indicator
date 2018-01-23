@@ -22,15 +22,6 @@ public class Hand {
 		this.pot = pot;
 		this.buttonPosition = buttonPosition;
 		this.action = action;
-	}
-
-	/**
-	 * Creates hands based on XML String output from Holdem Indicator
-	 * 
-	 * @param xmlString
-	 *            XML STring output from Holdem Indicator
-	 */
-	public Hand(String xmlString) {
 
 	}
 

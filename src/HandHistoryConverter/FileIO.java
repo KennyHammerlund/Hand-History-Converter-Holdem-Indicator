@@ -1,12 +1,20 @@
 package HandHistoryConverter;
 
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.io.StringReader;
+import java.io.UnsupportedEncodingException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.Statement;
 import java.text.SimpleDateFormat;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -41,6 +49,34 @@ public class FileIO {
 			System.exit(0);
 		}
 		return c;
+	}
+
+	/**
+	 * Writes list of hands to file specified by user
+	 * 
+	 * @param file
+	 * @param handList
+	 *            list of hands <String> created from list on page
+	 * @return
+	 */
+	public static boolean writeFile(File file, List<String> handList) {
+		try {
+			PrintWriter writer = new PrintWriter(file, "UTF-8");
+			for (String s : handList) {
+				writer.println(s);
+				writer.println("");
+				writer.println("");
+				writer.println("");
+			}
+			return true;
+		} catch (FileNotFoundException e) {
+			System.out.println("File Not Found");
+			e.printStackTrace();
+		} catch (UnsupportedEncodingException e) {
+			System.out.println("Unsupported Encoding");
+			e.printStackTrace();
+		}
+		return false;
 	}
 
 	public static String displayDB(Connection c) {
@@ -94,7 +130,6 @@ public class FileIO {
 				String xmlString = rs.getString("xml_dump");
 				String website = rs.getString("site");
 				retList.add(processXML(xmlString, website));
-
 			}
 
 			rs.close();
@@ -136,9 +171,8 @@ public class FileIO {
 			String limit = getLimit(doc, xpath);
 			double pot = getPot(doc, xpath);
 			int buttonPosition = getButtonPos(doc, xpath);
-			String action = getAction(doc, xpath);
-
 			website = siteConvert(website);
+			String action = getAction(doc, xpath, website);
 
 			retHand = new Hand(time, handID, website, stakes, limit, pot, buttonPosition, action);
 
@@ -162,10 +196,10 @@ public class FileIO {
 			site = "Ignition";
 			break;
 		case (27):
-			site = "Britan";
+			site = "Full Tilt";
 			break;
 		case (26):
-			site = "England";
+			site = "Sky Poker";
 			break;
 		default:
 			site = "Unknown";
@@ -175,7 +209,7 @@ public class FileIO {
 		return site;
 	}
 
-	private static String getAction(Document doc, XPath xpath) {
+	private static String getAction(Document doc, XPath xpath, String website) {
 		String actFull = "";
 		String[] table = new String[11];
 		String[] cards = new String[11];
@@ -199,7 +233,7 @@ public class FileIO {
 			String flop = "";
 			String turn = "";
 			String river = "";
-
+			String endPlayers = "";
 			for (String s : splitBoard) {
 				if (c <= 3) {
 					flop += s + " ";
@@ -217,6 +251,8 @@ public class FileIO {
 			Double potSize = Double.valueOf((String) potExpr.evaluate(doc, XPathConstants.STRING));
 			XPathExpression rakeExpr = xpath.compile("G/@rake");
 			Double rakeAmt = Double.valueOf((String) rakeExpr.evaluate(doc, XPathConstants.STRING));
+			XPathExpression idExpr = xpath.compile("G/@id");
+			long idAmt = Long.parseLong(((String) idExpr.evaluate(doc, XPathConstants.STRING)));
 
 			// set up player positions
 			int position = 0;
@@ -243,7 +279,6 @@ public class FileIO {
 					table[position] = pName;
 				}
 				actFull += "Seat " + position + ": " + table[position] + " (" + currency + pChips + " in chips) \n";
-
 			}
 
 			XPathExpression expr = xpath.compile("G/AS/A");
@@ -370,11 +405,154 @@ public class FileIO {
 				actFull += "Board [" + flop + " " + turn + " " + river + "]\n";
 			}
 
+			XPathExpression btnExpr = xpath.compile("G/PS/@dealer");
+			String btnPos = (String) btnExpr.evaluate(doc, XPathConstants.STRING);
+
+			// Build Header
+			String header = website + " Hand #" + idAmt + ": " + getGameName(doc, xpath) + " "
+					+ getStakesCash(doc, xpath) + " - " + getDate(doc, xpath) + "\n" + "Table '"
+					+ getTableName(doc, xpath) + "' " + getMaxPlayers(doc, xpath) + " Seat #" + btnPos
+					+ " is the button\n";
+
+			actFull = header + actFull;
 		} catch (XPathExpressionException e) {
 			e.printStackTrace();
 		}
 
 		return actFull;
+	}
+
+	private static String getMaxPlayers(Document doc, XPath xpath) {
+		String retVal = "";
+		try {
+			XPathExpression typeExpr = xpath.compile("G/@seats");
+			retVal = (String) typeExpr.evaluate(doc, XPathConstants.STRING);
+		} catch (XPathExpressionException e) {
+			e.printStackTrace();
+		}
+
+		retVal += "-max";
+		return retVal;
+	}
+
+	private static String getTableName(Document doc, XPath xpath) {
+		String retVal = "";
+
+		try {
+			XPathExpression typeExpr = xpath.compile("G/title");
+			retVal = (String) typeExpr.evaluate(doc, XPathConstants.STRING);
+		} catch (XPathExpressionException e) {
+			e.printStackTrace();
+		}
+
+		retVal = retVal.replaceFirst(".+? -", "");
+		retVal = retVal.trim();
+		return retVal;
+	}
+
+	/**
+	 * Returns String of time hand Was played
+	 * 
+	 * @param doc
+	 * @param xpath
+	 * @return
+	 */
+	private static String getDate(Document doc, XPath xpath) {
+		String retVal = null;
+		long longInt = 0;
+		try {
+			XPathExpression typeExpr = xpath.compile("G/@dt");
+			longInt = Long.parseLong((String) typeExpr.evaluate(doc, XPathConstants.STRING));
+		} catch (XPathExpressionException e) {
+			e.printStackTrace();
+		}
+		ZonedDateTime zDate = Instant.ofEpochSecond(longInt).atZone(ZoneId.of("GMT-5"));
+
+		retVal = zDate.format(DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss")) + " CST";
+
+		return retVal;
+	}
+
+	private static String getGameName(Document doc, XPath xpath) {
+		String retVal = null;
+		Integer type = null;
+		try {
+			XPathExpression typeExpr = xpath.compile("G/@type");
+			type = Integer.valueOf((String) typeExpr.evaluate(doc, XPathConstants.STRING));
+		} catch (XPathExpressionException e) {
+			e.printStackTrace();
+		}
+
+		switch (type) {
+		case (1):
+			retVal = getCashGameName(doc, xpath);
+			break;
+		case (3):
+			retVal = getSNGGameName(doc, xpath);
+			break;
+		}
+		return retVal;
+	}
+
+	/**
+	 * Returns string representation of the name of Sit N go
+	 * 
+	 * @param doc
+	 * @param xpath
+	 * @return
+	 */
+	private static String getSNGGameName(Document doc, XPath xpath) {
+		String retVal = "";
+
+		return retVal;
+	}
+
+	/**
+	 * Creates string representation of the name of the game
+	 * 
+	 * @param doc
+	 * @param xpath
+	 * @return
+	 */
+	private static String getCashGameName(Document doc, XPath xpath) {
+		String retVal = "";
+		Integer game = null, type = null, limit = null;
+		// get values
+		try {
+			XPathExpression gameExpr = xpath.compile("G/@game");
+			game = Integer.valueOf((String) gameExpr.evaluate(doc, XPathConstants.STRING));
+
+			XPathExpression limitExpr = xpath.compile("G/@limit");
+			limit = Integer.valueOf((String) limitExpr.evaluate(doc, XPathConstants.STRING));
+		} catch (XPathExpressionException e) {
+			e.printStackTrace();
+		}
+
+		switch (game) {
+		case (1):
+			retVal += "Hold'em";
+			break;
+		case (2):
+			retVal += "Omaha";
+			break;
+		case (3):
+			retVal += "";
+			break;
+		}
+
+		switch (limit) {
+		case (1):
+			retVal += " Limit";
+			break;
+		case (2):
+			retVal += " Pot Limit";
+			break;
+		case (3):
+			retVal += " No Limit";
+			break;
+		}
+		return retVal;
+
 	}
 
 	/**
